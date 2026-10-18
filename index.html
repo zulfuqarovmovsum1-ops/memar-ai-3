@@ -105,10 +105,10 @@ async function draw(s){
       await p.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:sh.w<=1?120:300,fill:'forwards',easing:'ease-in-out'}).finished;
     }
   }
-  $('#st').textContent='Rəngləyirəm…';
+  $('#st').textContent='Rəngləyirəm… yox';
   let last;els.forEach(([p,f],i)=>{if(f!=='none')last=p.animate([{fillOpacity:0},{fillOpacity:1}],{duration:500,delay:i*35,fill:'forwards'});});
   if(last)await last.finished;
-  $('#st').textContent='Hazırdır ✔';
+  $('#st').textContent='Hazırdır ey insan ✔';
 }
 async function go(){
   const t=$('#q').value.trim();if(!t)return;
