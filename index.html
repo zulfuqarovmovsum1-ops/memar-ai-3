@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="az"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memar AI – evini çəkir</title>
+<style>
+:root{--bg:#f6f3ec;--fg:#23201b;--mut:#6b655a;--card:#fff;--bd:#d9d3c5;--ac:#c2512d;--acfg:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171613;--fg:#efeadd;--mut:#a39d8f;--card:#22201b;--bd:#3a362e;--ac:#e0764f;--acfg:#1a1008}}
+:root[data-theme="dark"]{--bg:#171613;--fg:#efeadd;--mut:#a39d8f;--card:#22201b;--bd:#3a362e;--ac:#e0764f;--acfg:#1a1008}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Georgia,'Times New Roman',serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:28px;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 16px;font-size:15px}
+textarea{width:100%;min-height:84px;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--fg);font:16px/1.4 Georgia,serif;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:20px;padding:6px 12px;font:13px Georgia,serif;cursor:pointer}
+button#go{background:var(--ac);color:var(--acfg);border:0;border-radius:10px;padding:12px 22px;font:bold 16px Georgia,serif;cursor:pointer}
+button#go:disabled{opacity:.6;cursor:wait}
+.paper{margin-top:14px;border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:#fbf8f1}
+svg{display:block;width:100%;height:auto}
+#st{margin:10px 0 4px;color:var(--mut);font-style:italic;min-height:22px}
+#note{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;line-height:1.5;display:none}
+#note b{display:block;font-size:18px;margin-bottom:4px}
+#note small{color:var(--mut)}
+</style></head>
+<body><main>
+<h1>🏠 Memar AI</h1>
+<p class="sub">Necə bir ev istəyirsən? Yaz – AI memar onu adam kimi, addım-addım kağıza çəkəcək.</p>
+<textarea id="q" placeholder="Məs: Qırmızı damlı, ağ divarlı iki mərtəbəli ev, balkonu, qarajı və yanında ağaclar olsun"></textarea>
+<div class="row">
+<span class="chip">İki mərtəbəli ağ ev, qırmızı dam, baca, qaraj və 3 ağac</span>
+<span class="chip">Müasir düz damlı 3 mərtəbəli ev, balkon və hovuz</span>
+<span class="chip">Kiçik sarı bir mərtəbəli ev, hasar və bağ</span>
+</div>
+<button id="go">Evimi çək ✏️</button>
+<div id="st"></div>
+<div class="paper"><svg id="sv" viewBox="0 0 800 500" role="img" aria-label="Ev çertyojü"></svg></div>
+<div id="note" style="margin-top:12px"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s),svg=$('#sv'),NS='http://www.w3.org/2000/svg';
+const J=v=>v+(Math.random()-.5)*2.4;
+const poly=(p,c=true)=>'M'+p.map(([x,y])=>J(x).toFixed(1)+' '+J(y).toFixed(1)).join('L')+(c?'Z':'');
+const rect=(x,y,w,h)=>poly([[x,y],[x+w,y],[x+w,y+h],[x,y+h]]);
+const circ=(cx,cy,r)=>`M${cx-r} ${cy}a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0`;
+const hex=(c,d)=>/^#[0-9a-f]{6}$/i.test(c)?c:d;
+const num=(n,a,b,d)=>Number.isFinite(+n)?Math.min(b,Math.max(a,Math.round(+n))):d;
+const PROMPT='You are an architect AI. Convert the house description (any language) into JSON ONLY, no markdown, exactly: {"floors":1-3,"wall":"#rrggbb","roof":"#rrggbb","door":"#rrggbb","roofStyle":"gable|hip|flat","windows":1-4 (per floor),"chimney":bool,"garage":bool,"balcony":bool,"pool":bool,"fence":bool,"trees":0-4,"sun":bool,"title":"short name in Azerbaijani","note":"2-3 sentence architect comment in Azerbaijani about layout, rooms and style"}. Choose colors matching the description. Description: ';
+
+function local(t){
+  t=t.toLowerCase();const has=r=>r.test(t);
+  const s={floors:has(/(3|üç|three)/)?3:has(/(2|iki|two|dupleks)/)?2:1,wall:'#f2efe8',roof:'#9c4a32',door:'#6b4a2f',roofStyle:has(/müasir|modern|düz|flat/)?'flat':'gable',windows:2,
+    chimney:has(/baca|chimney/),garage:has(/qaraj|garaj|garage/),balcony:has(/balkon|balcony/),pool:has(/hovuz|pool/),fence:has(/hasar|çəpər|fence/),trees:has(/ağac|agac|tree|bağ/)?3:1,sun:true,
+    title:'Sənin evin',note:'AI bağlantısı olmadığı üçün sadə rejimdə, açar sözlərə görə çəkildi.'};
+  if(has(/qırmızı|red/))s.roof='#b5442e';if(has(/sarı|yellow/))s.wall='#f0d98a';if(has(/mavi|blue/))s.wall='#a9c7e0';
+  if(has(/yaşıl|green/))s.wall='#a8c9a0';if(has(/boz|gray|grey/))s.wall='#c4c4c4';
+  return s;
+}
+function norm(s){
+  return {floors:num(s.floors,1,3,1),wall:hex(s.wall,'#f2efe8'),roof:hex(s.roof,'#9c4a32'),door:hex(s.door,'#6b4a2f'),
+    roofStyle:['gable','hip','flat'].includes(s.roofStyle)?s.roofStyle:'gable',windows:num(s.windows,1,4,2),
+    chimney:!!s.chimney,garage:!!s.garage,balcony:!!s.balcony,pool:!!s.pool,fence:!!s.fence,trees:num(s.trees,0,4,1),sun:s.sun!==false,
+    title:String(s.title||'Sənin evin').slice(0,60),note:String(s.note||'').slice(0,500)};
+}
+function build(s){
+  const o=[],G=420,FH=110,X=180,W=360,top=G-s.floors*FH,add=(step,d,fill,w=2)=>o.push({step,d,fill,w});
+  add(0,poly([[30,G],[770,G]],false),'none',2.5);
+  if(s.sun)add(0,circ(690,80,34),'#f4c542');
+  add(0,circ(150,75,16)+circ(175,68,20)+circ(202,76,15),'#ffffff',1.5);
+  if(s.garage){add(1,rect(X+W,G-FH,140,FH),s.wall);add(2,rect(X+W-6,G-FH-12,152,12),s.roof);add(3,rect(X+W+20,G-80,100,80),'#c9c5bb');
+    for(let i=1;i<5;i++)add(3,poly([[X+W+20,G-80+i*16],[X+W+120,G-80+i*16]],false),'none',1);}
+  add(1,rect(X,top,W,s.floors*FH),s.wall);
+  for(let f=1;f<s.floors;f++)add(1,poly([[X,G-f*FH],[X+W,G-f*FH]],false),'none',1);
+  if(s.chimney&&s.roofStyle!=='flat')add(2,rect(X+W-100,top-115,30,95),'#a9553d',2);
+  if(s.roofStyle==='gable')add(2,poly([[X-20,top],[X+W/2,top-95],[X+W+20,top]]),s.roof);
+  else if(s.roofStyle==='hip')add(2,poly([[X-20,top],[X+50,top-80],[X+W-50,top-80],[X+W+20,top]]),s.roof);
+  else add(2,rect(X-10,top-14,W+20,14),s.roof);
+  add(3,rect(X+W/2-25,G-82,50,82),s.door);add(3,circ(X+W/2+14,G-42,3),'#e0b04a',1.5);
+  add(3,rect(X+W/2-32,G,64,6),'#bdb7a8',1.5);
+  const win=(cx,y,w)=>{add(4,rect(cx-w/2,y,w,50),'#bfe3f2');add(4,poly([[cx,y],[cx,y+50]],false),'none',1);add(4,poly([[cx-w/2,y+25],[cx+w/2,y+25]],false),'none',1);};
+  for(let f=0;f<s.floors;f++){
+    const y=G-(f+1)*FH+25,n=s.windows,ws=n>2?34:44;
+    if(f===0){const L=Math.ceil(n/2),R=Math.floor(n/2);
+      for(let i=0;i<L;i++)win(X+150*(i+1)/(L+1),y,ws);
+      for(let i=0;i<R;i++)win(X+W-150+150*(i+1)/(R+1),y,ws);
+    }else for(let i=0;i<n;i++)win(X+W*(i+1)/(n+1),y,ws);
+  }
+  if(s.balcony&&s.floors>=2){const cx=X+W/2;add(5,rect(cx-50,G-FH-8,100,8),'#8a8578');add(5,rect(cx-50,G-FH-34,100,26),'none',1.5);
+    for(let i=1;i<6;i++)add(5,poly([[cx-50+i*100/6,G-FH-34],[cx-50+i*100/6,G-FH-8]],false),'none',1);}
+  if(s.fence){for(let x=40;x<=160;x+=16)add(5,poly([[x,G-30],[x,G]],false),'none',1.5);add(5,poly([[40,G-20],[160,G-20]],false),'none',1.5);}
+  if(s.pool)add(5,poly([[430,436],[620,436],[645,470],[405,470]]),'#5fc3e4');
+  [95,735,50,765].slice(0,s.trees).forEach(x=>{add(5,rect(x-6,G-60,12,60),'#7a5230');add(5,circ(x,G-85,34),'#4f9a4a');});
+  return o;
+}
+const names=['Torpaq və səmanı','Divarları','Damı','Qapını','Pəncərələri','Detalları'];
+async function draw(s){
+  svg.innerHTML='';const els=[],shapes=build(s);
+  for(let st=0;st<6;st++){
+    $('#st').textContent=names[st]+' çəkirəm…';
+    for(const sh of shapes.filter(x=>x.step===st)){
+      const p=document.createElementNS(NS,'path');
+      p.setAttribute('d',sh.d);p.setAttribute('pathLength','1');p.setAttribute('fill',sh.fill);p.setAttribute('fill-opacity','0');
+      p.setAttribute('stroke','#2b2620');p.setAttribute('stroke-width',sh.w);p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');
+      p.style.strokeDasharray='1';p.style.strokeDashoffset='1';svg.appendChild(p);els.push([p,sh.fill]);
+      await p.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:sh.w<=1?120:300,fill:'forwards',easing:'ease-in-out'}).finished;
+    }
+  }
+  $('#st').textContent='Rəngləyirəm…';
+  let last;els.forEach(([p,f],i)=>{if(f!=='none')last=p.animate([{fillOpacity:0},{fillOpacity:1}],{duration:500,delay:i*35,fill:'forwards'});});
+  if(last)await last.finished;
+  $('#st').textContent='Hazırdır ✔';
+}
+async function go(){
+  const t=$('#q').value.trim();if(!t)return;
+  const b=$('#go');b.disabled=true;$('#st').textContent='Memar düşünür…';$('#note').style.display='none';
+  let spec,src='AI memar';
+  try{const sample=await window.claude.use('sample');if(!sample)throw 0;spec=await sample.json(PROMPT+t,{modelTier:'quick'});}
+  catch(e){spec=local(t);src='sadə rejim';}
+  spec=norm(spec);
+  await draw(spec);
+  const n=$('#note');n.innerHTML='';const bt=document.createElement('b');bt.textContent=spec.title;
+  const p=document.createElement('div');p.textContent=spec.note;const sm=document.createElement('small');sm.textContent=src;
+  n.append(bt,p,sm);n.style.display='block';b.disabled=false;
+}
+$('#go').onclick=go;
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$('#q').value=c.textContent;go();});
+</script></body></html>
