@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="az"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Memar AI – evini çəkir</title>
+<title>Memar AI movsum – evini çəkir</title>
 <style>
 :root{--bg:#f6f3ec;--fg:#23201b;--mut:#6b655a;--card:#fff;--bd:#d9d3c5;--ac:#c2512d;--acfg:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171613;--fg:#efeadd;--mut:#a39d8f;--card:#22201b;--bd:#3a362e;--ac:#e0764f;--acfg:#1a1008}}
@@ -26,7 +26,7 @@ svg{display:block;width:100%;height:auto}
 <body><main>
 <h1>🏠 Memar AI</h1>
 <p class="sub">Necə bir ev istəyirsən? Yaz – AI memar onu adam kimi, addım-addım kağıza çəkəcək.</p>
-<textarea id="q" placeholder="Məs: Qırmızı damlı, ağ divarlı iki mərtəbəli ev, balkonu, qarajı və yanında ağaclar olsun"></textarea>
+<textarea id="q" placeholder="Məs: Qırmızı damlı, movsum, balkonu, qarajı və yanında ağaclar olsun"></textarea>
 <div class="row">
 <span class="chip">İki mərtəbəli ağ ev, qırmızı dam, baca, qaraj və 3 ağac</span>
 <span class="chip">Müasir düz damlı 3 mərtəbəli ev, balkon və hovuz</span>
@@ -51,7 +51,7 @@ function local(t){
   t=t.toLowerCase();const has=r=>r.test(t);
   const s={floors:has(/(3|üç|three)/)?3:has(/(2|iki|two|dupleks)/)?2:1,wall:'#f2efe8',roof:'#9c4a32',door:'#6b4a2f',roofStyle:has(/müasir|modern|düz|flat/)?'flat':'gable',windows:2,
     chimney:has(/baca|chimney/),garage:has(/qaraj|garaj|garage/),balcony:has(/balkon|balcony/),pool:has(/hovuz|pool/),fence:has(/hasar|çəpər|fence/),trees:has(/ağac|agac|tree|bağ/)?3:1,sun:true,
-    title:'Sənin evin',note:'AI bağlantısı olmadığı üçün sadə rejimdə, açar sözlərə görə çəkildi.'};
+    title:'Sənin evin',note:'AI bağlantısı olmadığı üçün sadə rejimdə, açar sözlərə görə çəkildi movsum tərəfindən düzənləndi ha ha ha.'};
   if(has(/qırmızı|red/))s.roof='#b5442e';if(has(/sarı|yellow/))s.wall='#f0d98a';if(has(/mavi|blue/))s.wall='#a9c7e0';
   if(has(/yaşıl|green/))s.wall='#a8c9a0';if(has(/boz|gray|grey/))s.wall='#c4c4c4';
   return s;
@@ -108,7 +108,7 @@ async function draw(s){
   $('#st').textContent='Rəngləyirəm… yox';
   let last;els.forEach(([p,f],i)=>{if(f!=='none')last=p.animate([{fillOpacity:0},{fillOpacity:1}],{duration:500,delay:i*35,fill:'forwards'});});
   if(last)await last.finished;
-  $('#st').textContent='Hazırdır ey insan salam ✔';
+  $('#st').textContent='Hazırdır ey insan ✔ bunu çəkə bilməyən in beynidən şüpəm var';
 }
 async function go(){
   const t=$('#q').value.trim();if(!t)return;
