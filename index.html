@@ -115,7 +115,7 @@ async function go(){
   const b=$('#go');b.disabled=true;$('#st').textContent='Memar düşünür…';$('#note').style.display='none';
   let spec,src='AI memar';
   try{const sample=await window.claude.use('sample');if(!sample)throw 0;spec=await sample.json(PROMPT+t,{modelTier:'quick'});}
-  catch(e){spec=local(t);src='sadə rejim salam';}
+  catch(e){spec=local(t);src='mən movsum';}
   spec=norm(spec);
   await draw(spec);
   const n=$('#note');n.innerHTML='';const bt=document.createElement('b');bt.textContent=spec.title;
